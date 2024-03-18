@@ -110,17 +110,75 @@ const view = async (req: Request, res: Response): Promise<void> => {
 }
 
 const update = async (req: Request, res: Response): Promise<void> => {
-    try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+    Logger.http(`PATCH change user ${req.params.id}'s details`);
+    const validation = await validator.validate(
+        schemas.user_edit,
+        req.body);
+    if (validation !== true) {
+        res.statusMessage = `Bad Request: ${validation.toString()}`;
+        res.status(400).send();
         return;
+    }
+    const id = req.params.id;
+    const parsedId = parseInt(id, 10);
+    if(isNaN(parsedId)) {
+        res.status( 404 ).send('Not Found. No user with specified ID');
+        return;
+    }
+    const token = req.headers['x-authorization'];
+    if(token === undefined) {
+        res.status(401).send("Unauthorized")
+        return;
+    }
+    try {
+        const result = await users.getOneWithToken( parsedId, token );
+        if(result.length === 0) {
+            const noTokenResult = await users.getOneWithoutToken(parsedId);
+            if (noTokenResult.length === 0) {
+                res.status(404).send('Not Found. No user with specified ID');
+            } else {
+                res.status(403).send("Can not edit another user's information")
+            }
+        } else {
+            if(req.body.hasOwnProperty("password") && !req.body.hasOwnProperty("currentPassword")) {
+                res.status(400).send("Invalid information")
+                return;
+            }
+            if(!req.body.hasOwnProperty("password") && req.body.hasOwnProperty("currentPassword")) {
+                res.status(400).send("Invalid information")
+                return;
+            }
+            if(req.body.hasOwnProperty("currentPassword")) {
+                const currentPassword = req.body.currentPassword;
+                const isValid = await passwords.compare(currentPassword, result[0].password);
+                if(!isValid) {
+                    res.status(401).send("Invalid currentPassword")
+                } else {
+                    const password = req.body.passsword;
+                    if(currentPassword === password) {
+                        res.status(403).send("Identical current and new passwords")
+                    } else {
+                        result[0].password = await passwords.hash(password);
+                    }
+                }
+            }
+            if(req.body.hasOwnProperty("email")) {
+                result[0].email = req.body.email;
+            }
+            if(req.body.hasOwnProperty("firstName")) {
+                result[0].first_name = req.body.firstName;
+            }
+            if(req.body.hasOwnProperty("lastName")) {
+                result[0].last_name = req.body.lastName;
+            }
+            const updateResult = await users.updateUser(result[0]);
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
-        res.status(500).send();
-        return;
+        res.status(500).send(`Error updating user ${id}'s details: ${err}`);
     }
+
 }
 
 export {register, login, logout, view, update}

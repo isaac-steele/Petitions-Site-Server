@@ -58,4 +58,8 @@ const getOneWithoutToken = async(id: number) : Promise<User[]> => {
     return result;
 }
 
-export {insert, createToken, getUserByEmail, removeToken, getOneWithoutToken, getOneWithToken}
+const updateUser = async(user: User): Promise<ResultSetHeader> => {
+    return;
+}
+
+export {insert, createToken, getUserByEmail, removeToken, getOneWithoutToken, getOneWithToken, updateUser}
