@@ -153,10 +153,12 @@ const update = async (req: Request, res: Response): Promise<void> => {
                 const isValid = await passwords.compare(currentPassword, result[0].password);
                 if(!isValid) {
                     res.status(401).send("Invalid currentPassword")
+                    return;
                 } else {
-                    const password = req.body.passsword;
+                    const password = req.body.password;
                     if(currentPassword === password) {
                         res.status(403).send("Identical current and new passwords")
+                        return;
                     } else {
                         result[0].password = await passwords.hash(password);
                     }
@@ -172,11 +174,17 @@ const update = async (req: Request, res: Response): Promise<void> => {
                 result[0].last_name = req.body.lastName;
             }
             const updateResult = await users.updateUser(result[0]);
+            res.status(200).send(`User ${id}'s details updated`);
         }
     } catch (err) {
         Logger.error(err);
-        res.statusMessage = "Internal Server Error";
-        res.status(500).send(`Error updating user ${id}'s details: ${err}`);
+        if(err.code === "ER_DUP_ENTRY") {
+            res.status(403).send("Email already in use")
+        } else {
+            res.statusMessage = "Internal Server Error";
+            res.status(500).send(`Error updating user ${id}'s details: ${err}`);
+        }
+
     }
 
 }

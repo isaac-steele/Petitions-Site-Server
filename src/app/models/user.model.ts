@@ -32,7 +32,7 @@ const createToken = async(email: string, token: string) : Promise<ResultSetHeade
 }
 
 const removeToken = async(token: string | string[]) : Promise<ResultSetHeader> => {
-    Logger.info('Removing authentication token from the database');
+    Logger.info(`Removing authentication token from the database`);
     const conn = await getPool().getConnection();
     const query = 'update user set auth_token = null where auth_token = ?'
     const [result] = await conn.query( query, [token]);
@@ -59,7 +59,12 @@ const getOneWithoutToken = async(id: number) : Promise<User[]> => {
 }
 
 const updateUser = async(user: User): Promise<ResultSetHeader> => {
-    return;
+    Logger.info(`Updating user ${user.id} from database`);
+    const conn = await getPool().getConnection();
+    const query = 'update user set email = ?, first_name = ?, last_name = ?, password = ? where id = ?'
+    const [result] = await conn.query( query, [user.email, user.first_name, user.last_name, user.password, user.id]);
+    await conn.release();
+    return result;
 }
 
 export {insert, createToken, getUserByEmail, removeToken, getOneWithoutToken, getOneWithToken, updateUser}
