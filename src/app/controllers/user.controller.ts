@@ -26,7 +26,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
 
     } catch( err ) {
         if(err.code === "ER_DUP_ENTRY") {
-            res.status(403).send("Email already in use")
+            res.status(403).send("Email already in use");
         } else {
             res.status( 500 ).send( `ERROR registering user ${email}: ${ err }` );
         }
@@ -49,15 +49,15 @@ const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const result = await users.getUserByEmail(email);
         if(result.length === 0) {
-            res.status(401).send("UnAuthorized. Incorrect email")
+            res.status(401).send("UnAuthorized. Incorrect email");
         } else {
-            const isValid = await passwords.compare(password, result[0].password)
+            const isValid = await passwords.compare(password, result[0].password);
             if(!isValid) {
-                res.status(401).send("UnAuthorized. Incorrect password")
+                res.status(401).send("UnAuthorized. Incorrect password");
             } else {
                 const token = crypto.randomBytes(16).toString('hex');
                 const createResult = await users.createToken(email, token);
-                res.status(200).send({"userId" : result[0].id, "token" : token})
+                res.status(200).send({"userId" : result[0].id, "token" : token});
             }
         }
     } catch (err) {
@@ -72,9 +72,9 @@ const logout = async (req: Request, res: Response): Promise<void> => {
     try{
         const result = await users.removeToken(token);
         if(result.affectedRows === 0) {
-            res.status(401).send('Unauthorized. Cannot log out if you are not authenticated')
+            res.status(401).send('Unauthorized. Cannot log out if you are not authenticated');
         } else {
-            res.status(200).send()
+            res.status(200).send();
         }
     } catch (err) {
         Logger.error(err);
@@ -99,7 +99,7 @@ const view = async (req: Request, res: Response): Promise<void> => {
             if (noTokenResult.length === 0) {
                 res.status( 404 ).send('Not Found. No user with specified ID');
             } else {
-                res.status(200).send({"firstName": noTokenResult[0].first_name, "lastName" : noTokenResult[0].last_name})
+                res.status(200).send({"firstName": noTokenResult[0].first_name, "lastName" : noTokenResult[0].last_name});
             }
         } else {
             res.status( 200 ).send( {"email": result[0].email, "firstName": result[0].first_name, "lastName" : result[0].last_name} );
@@ -137,15 +137,15 @@ const update = async (req: Request, res: Response): Promise<void> => {
             if (noTokenResult.length === 0) {
                 res.status(404).send('Not Found. No user with specified ID');
             } else {
-                res.status(403).send("Can not edit another user's information")
+                res.status(403).send("Can not edit another user's information");
             }
         } else {
             if(req.body.hasOwnProperty("password") && !req.body.hasOwnProperty("currentPassword")) {
-                res.status(400).send("Invalid information")
+                res.status(400).send("Invalid information");
                 return;
             }
             if(!req.body.hasOwnProperty("password") && req.body.hasOwnProperty("currentPassword")) {
-                res.status(400).send("Invalid information")
+                res.status(400).send("Invalid information");
                 return;
             }
             if(req.body.hasOwnProperty("currentPassword")) {
