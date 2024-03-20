@@ -2,7 +2,7 @@ import { getPool } from '../../config/db';
 import Logger from '../../config/logger';
 import { ResultSetHeader } from 'mysql2'
 
-const getAll = async (parameters : PetitionParameters) : Promise<Petition[]> => {
+const getAll = async (parameters : PetitionParameters) : Promise<Petitions[]> => {
     Logger.info(`Getting petitions from the database`);
     const conn = await getPool().getConnection();
     const conditions = [];
@@ -51,13 +51,41 @@ const getAll = async (parameters : PetitionParameters) : Promise<Petition[]> => 
             orderBy += "p.creation_date DESC";
             break;
     }
-    orderBy += ", p.id"
+    orderBy += ", p.id";
     query += orderBy;
-    Logger.info(query)
-    const [ result ] = await conn.query( query );
-    Logger.info(result);
+    const [ result ] = await conn.query( [query] );
     await conn.release();
     return result;
 };
 
-export {getAll}
+const getOne = async(id: number) : Promise<Petition[]> => {
+    Logger.info(`Getting petition ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const petitionQuery = 'select p.id as petitionId, p.title, p.category_id as categoryId, p.owner_id as ownerId,' +
+        ' u.first_name as ownerFirstName, u.last_name as ownerLastName,' +
+        ' (SELECT COUNT(id) from supporter where petition_id = p.id) as numberOfSupporters, p.creation_date as creationDate,' +
+        ` p.description from petition p join user u on p.owner_id = u.id where p.id = ${id}`;
+    const [ result ] = await conn.query( petitionQuery);
+    if(result.length === 0) {
+        return result;
+    }
+    const supportTiersQuery = 'select title, description, cost, id as supportTierId from support_tier' +
+        ` where petition_id = ${id}`;
+    const [ supportTiers ] = await conn.query( supportTiersQuery);
+    const supportQuery = 'select support_tier_id as supportTierId from supporter where petition_id = ?';
+    const [supporters] = await conn.query(supportQuery, [id]);
+    let money = 0;
+    supporters.forEach( (supporter: { supportTierId: number}) => {
+        (supportTiers as SupportTier[]).forEach(tier => {
+            if (tier.supportTierId === supporter.supportTierId) {
+                money += tier.cost;
+            }
+        } )
+    })
+    result[0].moneyRaised = money;
+    result[0].supportTiers = supportTiers;
+    await conn.release();
+    return result;
+}
+
+export {getAll, getOne}

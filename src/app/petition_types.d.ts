@@ -1,18 +1,58 @@
+type Petitions = {
+
+    petitionId: number,
+
+    title: string,
+
+    categoryId: number,
+
+    ownerId: number,
+
+    ownerFirstName: string,
+
+    ownerLastName: string,
+
+    creationDate: string,
+
+    supportingCost: number
+
+}
+
 type Petition = {
 
-    id: number,
+    petitionId: number,
+
+    title: string,
+
+    categoryId: number,
+
+    ownerId: number,
+
+    ownerFirstName: string,
+
+    ownerLastName: string,
+
+    numberOfSupporters: number,
+
+    creationDate: string,
+
+    description: string,
+
+    moneyRaised: number,
+
+    supportTiers: SupportTier[]
+
+}
+
+type SupportTier = {
 
     title: string,
 
     description: string,
 
-    creation_date: string,
+    cost: number,
 
-    image_filename: string,
-
-    owner_id: number,
-
-    category_id: number
+    supportTierId: number
 }
 
 type PetitionParameters = {

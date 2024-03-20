@@ -46,11 +46,20 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
 
 
 const getPetition = async (req: Request, res: Response): Promise<void> => {
-    try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+    Logger.http(`GET petition ${req.params.id}`)
+    const id = req.params.id;
+    const parsedId = parseInt(id, 10);
+    if(isNaN(parsedId)) {
+        res.status( 404 ).send('No petition with specified ID');
         return;
+    }
+    try{
+        const result = await petitions.getOne(parsedId);
+        if(result.length === 0) {
+            res.status(404).send('No petition with specified id');
+        } else {
+            res.status(200).send(result[0]);
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
