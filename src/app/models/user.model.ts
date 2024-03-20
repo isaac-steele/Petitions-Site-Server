@@ -40,11 +40,11 @@ const removeToken = async(token: string | string[]) : Promise<ResultSetHeader> =
     return result;
 }
 
-const getOneWithToken = async(id: number, token: string | string[]) : Promise<User[]> => {
-    Logger.info(`Getting user ${id} with token from database`);
+const getOneWithToken = async(token: string | string[]) : Promise<User[]> => {
+    Logger.info(`Getting user with token from database`);
     const conn = await getPool().getConnection();
-    const query = 'select * from user where id = ? and auth_token = ?'
-    const [result] = await conn.query( query, [id, token]);
+    const query = 'select * from user where auth_token = ?'
+    const [result] = await conn.query( query, [token]);
     await conn.release();
     return result;
 }

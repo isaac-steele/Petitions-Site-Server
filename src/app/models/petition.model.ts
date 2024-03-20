@@ -1,6 +1,8 @@
 import { getPool } from '../../config/db';
 import Logger from '../../config/logger';
 import { ResultSetHeader } from 'mysql2'
+import * as passwords from "../services/passwords";
+import validTimestamp from "ajv/dist/runtime/timestamp";
 
 const getAll = async (parameters : PetitionParameters) : Promise<Petitions[]> => {
     Logger.info(`Getting petitions from the database`);
@@ -88,4 +90,25 @@ const getOne = async(id: number) : Promise<Petition[]> => {
     return result;
 }
 
-export {getAll, getOne}
+const addOne = async(title: string, description: string, categoryId: number, ownerId: number): Promise<ResultSetHeader> => {
+    Logger.info(`Adding petition ${title} to the database`);
+    const conn = await getPool().getConnection();
+    const d = new Date();
+    const year = d.getFullYear()
+    const month = d.getMonth() + 1
+    const day = d.getDate()
+    const hour = d.getHours()
+    const minute = d.getMinutes()
+    const second = d.getSeconds()
+    const creationDate = `${year}-${month}-${day} ${hour}:${minute}:${second}`
+    const query = 'insert into petition (title, description, category_id, creation_date, owner_id) values ( ?, ?, ?, ?, ? )';
+    const [ result ] = await conn.query( query, [ title, description, categoryId, creationDate, ownerId ] );
+    await conn.release();
+    return result;
+}
+
+const updateOne = async(id: number, title: string, description : string, categoryId : number) : Promise<ResultSetHeader> => {
+    return;
+}
+
+export {getAll, getOne, addOne, updateOne}

@@ -57,7 +57,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
     }
     const image = req.body;
     try {
-        const result = await users.getOneWithToken( parsedId, token );
+        const result = await users.getOneWithToken( token );
         if(result.length === 0) {
             const noTokenResult = await users.getOneWithoutToken(parsedId);
             if (noTokenResult.length === 0) {
@@ -95,7 +95,7 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     try {
-        const result = await users.getOneWithToken( parsedId, token );
+        const result = await users.getOneWithToken( token );
         if(result.length === 0) {
             const noTokenResult = await users.getOneWithoutToken(parsedId);
             if (noTokenResult.length === 0) {

@@ -93,7 +93,7 @@ const view = async (req: Request, res: Response): Promise<void> => {
     }
     const token = req.headers['x-authorization'];
     try {
-        const result = await users.getOneWithToken( parsedId, token );
+        const result = await users.getOneWithToken( token );
         if( result.length === 0 ){
             const noTokenResult = await users.getOneWithoutToken(parsedId);
             if (noTokenResult.length === 0) {
@@ -131,7 +131,7 @@ const update = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     try {
-        const result = await users.getOneWithToken( parsedId, token );
+        const result = await users.getOneWithToken( token );
         if(result.length === 0) {
             const noTokenResult = await users.getOneWithoutToken(parsedId);
             if (noTokenResult.length === 0) {
