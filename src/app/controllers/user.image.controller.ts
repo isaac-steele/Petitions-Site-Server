@@ -101,10 +101,11 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
             if (noTokenResult.length === 0) {
                 res.status(404).send('Not Found. No user with specified ID');
             } else {
-                res.status(403).send("Can not change another user's profile photo");
+                res.status(403).send("Can not delete another user's profile photo");
             }
         } else {
-            // const deleteResult = await userImages.deleteImage(parsedId);
+            const deleteResult = await userImages.deleteImage(parsedId);
+            res.status(200).send("Image deleted");
         }
     } catch (err) {
         res.status( 500 ).send( `ERROR deleting profile image of user ${id}: ${ err }` );

@@ -12,4 +12,13 @@ const updateImage = async(fileName: string, id: number) : Promise<ResultSetHeade
     return result;
 }
 
-export {updateImage}
+const deleteImage = async(id: number) : Promise<ResultSetHeader> => {
+    Logger.info(`Delete image for user ${id} from database`);
+    const conn = await getPool().getConnection();
+    const query = 'update user set image_filename = null where id = ?'
+    const [result] = await conn.query( query, [id]);
+    await conn.release();
+    return result;
+}
+
+export {updateImage, deleteImage}
