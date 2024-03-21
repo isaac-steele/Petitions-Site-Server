@@ -20,12 +20,20 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
         startIndex: isNaN(parseInt(req.query.startIndex as string, 10)) ? null : parseInt(req.query.startIndex as string, 10),
         count: isNaN(parseInt(req.query.count as string, 10)) ? null : parseInt(req.query.count as string, 10),
         q: req.query.q as string || null,
-        categoryIds: Array.isArray(req.query.categoryIds) ? req.query.categoryIds.map(id => isNaN(parseInt(id as string, 10)) ? null : parseInt(id as string, 10)) : null,
+        categoryIds: [],
         supportingCost: isNaN(parseInt(req.query.supportingCost as string, 10)) ? null : parseInt(req.query.supportingCost as string, 10),
         ownerId: isNaN(parseInt(req.query.ownerId as string, 10)) ? null : parseInt(req.query.ownerId as string, 10),
         supporterId: isNaN(parseInt(req.query.supporterId as string, 10)) ? null : parseInt(req.query.supporterId as string, 10),
         sortBy: req.query.sortBy as string || "CREATED_ASC"
     };
+    if (Array.isArray(req.query.categoryIds)) {
+        petitionParams.categoryIds = req.query.categoryIds.map(id => isNaN(parseInt(id as string, 10)) ? null : parseInt(id as string, 10));
+    } else if (typeof req.query.categoryIds === 'string') {
+        const id = req.query.categoryIds;
+        petitionParams.categoryIds = isNaN(parseInt(id, 10)) ? null : [parseInt(id, 10)];
+    } else {
+        petitionParams.categoryIds = null;
+    }
 
     try{
         const result = await petitions.getAll(petitionParams);
@@ -143,9 +151,6 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     const token = req.headers['x-authorization'];
-    const title = req.body.title;
-    const description = req.body.description;
-    const categoryId = req.body.categoryId;
     try{
         const user = await users.getOneWithToken( token );
         if(user.length === 0) {
@@ -157,11 +162,21 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
             res.status(404).send('No petition with id');
             return;
         }
-        if(petition[0].ownerId != user[0].id) {
+        if(petition[0].ownerId !== user[0].id) {
             res.status(403).send("Only the owner of a petition may change it");
             return;
         }
-        const result = await petitions.updateOne(parsedId, title, description, categoryId);
+        if(req.body.hasOwnProperty("title")) {
+            petition[0].title = req.body.title;
+        }
+        if(req.body.hasOwnProperty("description")) {
+            petition[0].description = req.body.description;
+        }
+        if(req.body.hasOwnProperty("categoryId")) {
+            petition[0].categoryId = req.body.categoryId;
+        }
+        const result = await petitions.updateOne(petition[0]);
+        res.status(200).send(`Petition ${id}'s details updated`);
     } catch (err) {
         Logger.error(err);
         if(err.errno === 1216 || err.errno === 1452) {
@@ -178,25 +193,49 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
 }
 
 const deletePetition = async (req: Request, res: Response): Promise<void> => {
-    try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+    Logger.http(`DELETE delete petition ${req.params.id}`)
+    const id = req.params.id;
+    const parsedId = parseInt(id, 10);
+    if(isNaN(parsedId)) {
+        res.status( 404 ).send('No petition found with id');
         return;
+    }
+    const token = req.headers['x-authorization'];
+    try{
+        const user = await users.getOneWithToken( token );
+        if(user.length === 0) {
+            res.status(401).send("Unauthorized");
+            return;
+        }
+        const petition = await petitions.getOne(parsedId);
+        if (petition.length === 0) {
+            res.status(404).send('No petition found with id');
+            return;
+        }
+        if(petition[0].ownerId !== user[0].id) {
+            res.status(403).send("Only the owner of a petition may change it");
+            return;
+        }
+        if(petition[0].numberOfSupporters > 0) {
+            res.status(403).send("Can not delete a petition with one or more supporters");
+            return;
+        }
+        const result = await petitions.deleteOne(parsedId);
+        res.status(200).send(`Petition ${id} deleted`);
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
         res.status(500).send();
         return;
+
     }
 }
 
 const getCategories = async(req: Request, res: Response): Promise<void> => {
+    Logger.http(`GET all petition categories`)
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
-        return;
+        const result = await petitions.getCategories();
+        res.status(200).send(result);
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

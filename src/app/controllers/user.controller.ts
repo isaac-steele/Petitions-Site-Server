@@ -93,14 +93,12 @@ const view = async (req: Request, res: Response): Promise<void> => {
     }
     const token = req.headers['x-authorization'];
     try {
-        const result = await users.getOneWithToken( token );
-        if( result.length === 0 ){
-            const noTokenResult = await users.getOneWithoutToken(parsedId);
-            if (noTokenResult.length === 0) {
-                res.status( 404 ).send('Not Found. No user with specified ID');
-            } else {
-                res.status(200).send({"firstName": noTokenResult[0].first_name, "lastName" : noTokenResult[0].last_name});
-            }
+        const result = await users.getOneWithToken(token);
+        const user = await users.getOneWithoutToken(parsedId);
+        if(user.length === 0) {
+            res.status( 404 ).send('Not Found. No user with specified ID');
+        } else if (result.length === 0 || result[0].id !== user[0].id) {
+            res.status(200).send({"firstName": user[0].first_name, "lastName" : user[0].last_name});
         } else {
             res.status( 200 ).send( {"email": result[0].email, "firstName": result[0].first_name, "lastName" : result[0].last_name} );
         }
@@ -126,19 +124,15 @@ const update = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     const token = req.headers['x-authorization'];
-    if(token === undefined) {
-        res.status(401).send("Unauthorized")
-        return;
-    }
     try {
-        const result = await users.getOneWithToken( token );
+        const result = await users.getOneWithToken(token);
+        const user = await users.getOneWithoutToken(parsedId);
         if(result.length === 0) {
-            const noTokenResult = await users.getOneWithoutToken(parsedId);
-            if (noTokenResult.length === 0) {
-                res.status(404).send('Not Found. No user with specified ID');
-            } else {
-                res.status(403).send("Can not edit another user's information");
-            }
+            res.status(401).send("Unauthorized");
+        } else if(user.length === 0) {
+            res.status(404).send('Not Found. No user with specified ID');
+        } else if(result[0].id !== user[0].id) {
+            res.status(403).send("Can not edit another user's information");
         } else {
             if(req.body.hasOwnProperty("password") && !req.body.hasOwnProperty("currentPassword")) {
                 res.status(400).send("Invalid information");

@@ -1,8 +1,7 @@
 import { getPool } from '../../config/db';
 import Logger from '../../config/logger';
 import { ResultSetHeader } from 'mysql2'
-import * as passwords from "../services/passwords";
-import validTimestamp from "ajv/dist/runtime/timestamp";
+
 
 const getAll = async (parameters : PetitionParameters) : Promise<Petitions[]> => {
     Logger.info(`Getting petitions from the database`);
@@ -55,7 +54,7 @@ const getAll = async (parameters : PetitionParameters) : Promise<Petitions[]> =>
     }
     orderBy += ", p.id";
     query += orderBy;
-    const [ result ] = await conn.query( [query] );
+    const [ result ] = await conn.query( query );
     await conn.release();
     return result;
 };
@@ -107,8 +106,31 @@ const addOne = async(title: string, description: string, categoryId: number, own
     return result;
 }
 
-const updateOne = async(id: number, title: string, description : string, categoryId : number) : Promise<ResultSetHeader> => {
-    return;
+const updateOne = async(petition: Petition) : Promise<ResultSetHeader> => {
+    Logger.info(`Updating petition ${petition.petitionId} in the database`);
+    const conn = await getPool().getConnection();
+    const query = 'update petition set title = ?, description = ?, category_id = ? where id = ?';
+    const [ result ] = await conn.query( query, [ petition.title, petition.description, petition.categoryId, petition.petitionId ] );
+    await conn.release();
+    return result;
 }
 
-export {getAll, getOne, addOne, updateOne}
+const deleteOne = async(id : number) : Promise<ResultSetHeader> => {
+    Logger.info(`Deleting petition ${id} from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'delete from petition where id = ?';
+    const [ result ] = await conn.query( query, [ id ] );
+    await conn.release();
+    return result;
+}
+
+const getCategories = async() : Promise<Category[]> => {
+    Logger.info(`Getting petitions from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'select id as categoryId, name from category';
+    const [ result ] = await conn.query( query );
+    await conn.release();
+    return result;
+}
+
+export {getAll, getOne, addOne, updateOne, deleteOne, getCategories}

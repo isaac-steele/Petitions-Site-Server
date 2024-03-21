@@ -73,3 +73,27 @@ type PetitionParameters = {
 
     sortBy : string
 }
+
+type Category = {
+
+    categoryId: number,
+
+    name: string
+}
+
+type Supporter = {
+
+    supportId: number,
+
+    supportTierId: number,
+
+    message: string,
+
+    supporterId: number,
+
+    supporterFirstName: number,
+
+    supporterLastName: string,
+
+    timestamp: string
+}

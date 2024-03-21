@@ -46,10 +46,6 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     const token = req.headers['x-authorization'];
-    if(token === undefined) {
-        res.status(401).send("Unauthorized");
-        return;
-    }
     const fileType = req.headers['content-type'];
     if(!(['image/jpeg', 'image/png', 'image/gif'].includes(fileType))) {
         res.status(400).send("Bad request. Invalid image supplied");
@@ -57,14 +53,14 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
     }
     const image = req.body;
     try {
-        const result = await users.getOneWithToken( token );
+        const result = await users.getOneWithToken(token);
+        const user = await users.getOneWithoutToken(parsedId);
         if(result.length === 0) {
-            const noTokenResult = await users.getOneWithoutToken(parsedId);
-            if (noTokenResult.length === 0) {
-                res.status(404).send('Not Found. No user with specified ID');
-            } else {
-                res.status(403).send("Can not change another user's profile photo");
-            }
+            res.status(401).send("Unauthorized");
+        } else if(user.length === 0) {
+            res.status(404).send('Not Found. No user with specified ID');
+        } else if(result[0].id !== user[0].id) {
+            res.status(403).send("Can not change another user's profile photo");
         } else {
             const fileName = `user_${id}.${fileType.replace("image/", "")}`
             const filePath = `storage/images/${fileName}`;
@@ -90,19 +86,15 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     const token = req.headers['x-authorization'];
-    if(token === undefined) {
-        res.status(401).send("Unauthorized");
-        return;
-    }
     try {
-        const result = await users.getOneWithToken( token );
+        const result = await users.getOneWithToken(token);
+        const user = await users.getOneWithoutToken(parsedId);
         if(result.length === 0) {
-            const noTokenResult = await users.getOneWithoutToken(parsedId);
-            if (noTokenResult.length === 0) {
-                res.status(404).send('Not Found. No user with specified ID');
-            } else {
-                res.status(403).send("Can not delete another user's profile photo");
-            }
+            res.status(401).send("Unauthorized");
+        } else if(user.length === 0) {
+            res.status(404).send('Not Found. No user with specified ID');
+        } else if(result[0].id !== user[0].id) {
+            res.status(403).send("Can not delete another user's profile photo");
         } else {
             const deleteResult = await userImages.deleteImage(parsedId);
             res.status(200).send("Image deleted");

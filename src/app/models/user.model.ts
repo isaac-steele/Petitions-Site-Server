@@ -67,4 +67,4 @@ const updateUser = async(user: User): Promise<ResultSetHeader> => {
     return result;
 }
 
-export {insert, createToken, getUserByEmail, removeToken, getOneWithoutToken, getOneWithToken, updateUser}
+export {insert, createToken, getUserByEmail, removeToken, getOneWithoutToken, updateUser, getOneWithToken}
