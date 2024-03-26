@@ -9,14 +9,14 @@ import * as supportTiers from "../models/petition.support_tier.model";
 
 
 const getAllSupportersForPetition = async (req: Request, res: Response): Promise<void> => {
-    Logger.http(`GET a list of supporters of petition ${req.params.id}`)
-    const id = req.params.id;
-    const parsedId = parseInt(id, 10);
-    if(isNaN(parsedId)) {
-        res.status( 404 ).send('No petition with specified ID');
-        return;
-    }
-    try{
+    try {
+        Logger.http(`GET a list of supporters of petition ${req.params.id}`)
+        const id = req.params.id;
+        const parsedId = parseInt(id, 10);
+        if(isNaN(parsedId)) {
+            res.status( 404 ).send('No petition with specified ID');
+            return;
+        }
         const result = await supporters.getAll(parsedId);
         if(result.length === 0) {
             res.status(404).send("No petition with id");
@@ -32,30 +32,30 @@ const getAllSupportersForPetition = async (req: Request, res: Response): Promise
 }
 
 const addSupporter = async (req: Request, res: Response): Promise<void> => {
-    Logger.http(`PUT supporting petition ${req.params.id} at tier ${req.body.supportTierId}`)
-    const validation = await validator.validate(
-        schemas.support_post,
-        req.body);
-    if (validation !== true) {
-        res.statusMessage = `Bad Request: ${validation.toString()}`;
-        res.status(400).send();
-        return;
-    }
-    const id = req.params.id;
-    const parsedId = parseInt(id, 10);
-    if(isNaN(parsedId)) {
-        res.status( 404 ).send('No petition found with id');
-        return;
-    }
-    const token = req.headers['x-authorization'];
-    const supportTierId = parseInt(req.body.supportTierId, 10);
-    const message = req.body.message;
-    try{
+    try {
+        Logger.http(`PUT supporting petition ${req.params.id} at tier ${req.body.supportTierId}`)
+        const token = req.headers['x-authorization'];
         const user = await users.getOneWithToken( token );
         if(user.length === 0) {
             res.status(401).send("Unauthorized");
             return;
         }
+        const id = req.params.id;
+        const parsedId = parseInt(id, 10);
+        if(isNaN(parsedId)) {
+            res.status( 404 ).send('No petition found with id');
+            return;
+        }
+        const validation = await validator.validate(
+            schemas.support_post,
+            req.body);
+        if (validation !== true) {
+            res.statusMessage = `Bad Request: ${validation.toString()}`;
+            res.status(400).send();
+            return;
+        }
+        const supportTierId = parseInt(req.body.supportTierId, 10);
+        const message = req.body.message;
         const petition = await petitions.getOne(parsedId);
         if (petition.length === 0) {
             res.status(404).send('No petition found with id');
@@ -79,15 +79,9 @@ const addSupporter = async (req: Request, res: Response): Promise<void> => {
         res.status(201).send(`Supporter added to petition ${id} at tier ${supportTierId}`);
     } catch (err) {
         Logger.error(err);
-        if(err.code ===  "ER_DUP_ENTRY") {
-            res.status(403).send("Support title not unique within petition")
-        } else {
-            res.statusMessage = "Internal Server Error";
-            res.status(500).send();
-            return;
-        }
-
-
+        res.statusMessage = "Internal Server Error";
+        res.status(500).send();
+        return;
     }
 }
 

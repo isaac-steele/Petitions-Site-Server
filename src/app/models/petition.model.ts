@@ -9,7 +9,8 @@ const getAll = async (parameters : PetitionParameters) : Promise<Petitions[]> =>
     const conditions = [];
     let query = 'select p.id as petitionId, p.title, p.category_id as categoryId, p.owner_id as ownerId,' +
         ' u.first_name as ownerFirstName, u.last_name as ownerLastName, p.creation_date as creationDate,' +
-        ' (SELECT MIN(cost) FROM support_tier WHERE petition_id = p.id) as supportingCost' +
+        ' (SELECT MIN(cost) FROM support_tier WHERE petition_id = p.id) as supportingCost, ' +
+        '(SELECT COUNT(id) from supporter where petition_id = p.id) as numberOfSupporters' +
         ' from petition p join user u on p.owner_id = u.id';
     if(parameters.q != null) {
         conditions.push(`(p.title like '%${parameters.q}%' or p.description like '%${parameters.q}%')`);

@@ -7,26 +7,26 @@ import * as schemas from "../resources/schemas.json";
 import * as supportTiers from '../models/petition.support_tier.model';
 
 const addSupportTier = async (req: Request, res: Response): Promise<void> => {
-    Logger.http(`PUT add new support tier to petition ${req.params.id}`)
-    const validation = await validator.validate(
-        schemas.support_tier_post,
-        req.body);
-    if (validation !== true) {
-        res.statusMessage = `Bad Request: ${validation.toString()}`;
-        res.status(400).send();
-        return;
-    }
-    const id = req.params.id;
-    const parsedId = parseInt(id, 10);
-    if(isNaN(parsedId)) {
-        res.status( 404 ).send('No petition found with id');
-        return;
-    }
-    const token = req.headers['x-authorization'];
-    try{
+    try {
+        Logger.http(`PUT add new support tier to petition ${req.params.id}`)
+        const token = req.headers['x-authorization'];
         const user = await users.getOneWithToken( token );
         if(user.length === 0) {
             res.status(401).send("Unauthorized");
+            return;
+        }
+        const validation = await validator.validate(
+            schemas.support_tier_post,
+            req.body);
+        if (validation !== true) {
+            res.statusMessage = `Bad Request: ${validation.toString()}`;
+            res.status(400).send();
+            return;
+        }
+        const id = req.params.id;
+        const parsedId = parseInt(id, 10);
+        if(isNaN(parsedId)) {
+            res.status( 404 ).send('No petition found with id');
             return;
         }
         const petition = await petitions.getOne(parsedId);
@@ -60,32 +60,32 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
 }
 
 const editSupportTier = async (req: Request, res: Response): Promise<void> => {
-    Logger.http(`PATCH update support tier ${req.params.tierId} in petition ${req.params.id}`)
-    const validation = await validator.validate(
-        schemas.support_tier_patch,
-        req.body);
-    if (validation !== true) {
-        res.statusMessage = `Bad Request: ${validation.toString()}`;
-        res.status(400).send();
-        return;
-    }
-    const id = req.params.id;
-    const parsedId = parseInt(id, 10);
-    if(isNaN(parsedId)) {
-        res.status( 404 ).send('No petition found with id');
-        return;
-    }
-    const tierId = req.params.tierId;
-    const parsedTierId = parseInt(tierId, 10);
-    if(isNaN(parsedTierId)) {
-        res.status( 404 ).send('No support tier found with id');
-        return;
-    }
-    const token = req.headers['x-authorization'];
-    try{
+    try {
+        Logger.http(`PATCH update support tier ${req.params.tierId} in petition ${req.params.id}`)
+        const token = req.headers['x-authorization'];
         const user = await users.getOneWithToken( token );
         if(user.length === 0) {
             res.status(401).send("Unauthorized");
+            return;
+        }
+        const validation = await validator.validate(
+            schemas.support_tier_patch,
+            req.body);
+        if (validation !== true) {
+            res.statusMessage = `Bad Request: ${validation.toString()}`;
+            res.status(400).send();
+            return;
+        }
+        const id = req.params.id;
+        const parsedId = parseInt(id, 10);
+        if(isNaN(parsedId)) {
+            res.status( 404 ).send('No petition found with id');
+            return;
+        }
+        const tierId = req.params.tierId;
+        const parsedTierId = parseInt(tierId, 10);
+        if(isNaN(parsedTierId)) {
+            res.status( 404 ).send('No support tier found with id');
             return;
         }
         const petition = await petitions.getOne(parsedId);
@@ -133,24 +133,24 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
 }
 
 const deleteSupportTier = async (req: Request, res: Response): Promise<void> => {
-    Logger.http(`DELETE support tier ${req.params.tierId} in petition ${req.params.id}`)
-    const id = req.params.id;
-    const parsedId = parseInt(id, 10);
-    if(isNaN(parsedId)) {
-        res.status( 404 ).send('No petition found with id');
-        return;
-    }
-    const tierId = req.params.tierId;
-    const parsedTierId = parseInt(tierId, 10);
-    if(isNaN(parsedTierId)) {
-        res.status( 404 ).send('No support tier found with id');
-        return;
-    }
-    const token = req.headers['x-authorization'];
-    try{
+    try {
+        Logger.http(`DELETE support tier ${req.params.tierId} in petition ${req.params.id}`)
+        const token = req.headers['x-authorization'];
         const user = await users.getOneWithToken( token );
         if(user.length === 0) {
             res.status(401).send("Unauthorized");
+            return;
+        }
+        const id = req.params.id;
+        const parsedId = parseInt(id, 10);
+        if(isNaN(parsedId)) {
+            res.status( 404 ).send('No petition found with id');
+            return;
+        }
+        const tierId = req.params.tierId;
+        const parsedTierId = parseInt(tierId, 10);
+        if(isNaN(parsedTierId)) {
+            res.status( 404 ).send('No support tier found with id');
             return;
         }
         const petition = await petitions.getOne(parsedId);
