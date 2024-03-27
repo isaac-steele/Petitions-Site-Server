@@ -35,6 +35,21 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
         } else {
             petitionParams.categoryIds = null;
         }
+        const categories = await petitions.getCategories();
+        const allCategoryIds = categories.map(category => category.categoryId);
+        let allCategoriesValid = true;
+        if(petitionParams.categoryIds !== null) {
+            petitionParams.categoryIds.forEach(id => {
+                if(!allCategoryIds.includes(id)) {
+                    allCategoriesValid = false;
+                }
+            });
+        }
+        if(!allCategoriesValid) {
+            res.statusMessage = `Bad Request: no category exists`;
+            res.status(400).send();
+            return;
+        }
         const result = await petitions.getAll(petitionParams);
         const count = result.length;
         let filteredResults = result;

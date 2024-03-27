@@ -126,7 +126,7 @@ const deleteOne = async(id : number) : Promise<ResultSetHeader> => {
 }
 
 const getCategories = async() : Promise<Category[]> => {
-    Logger.info(`Getting petitions from the database`);
+    Logger.info(`Getting categories from the database`);
     const conn = await getPool().getConnection();
     const query = 'select id as categoryId, name from category';
     const [ result ] = await conn.query( query );
