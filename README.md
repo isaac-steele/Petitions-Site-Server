@@ -10,9 +10,7 @@
 
 ### `.env` file
 
-Create a `.env` file in the root directory of this project including the following information (note that you will need
-to create the database first in phpMyAdmin):
-
+Create a `.env` file in the root directory of this project including the following information
 ```
 SENG365_MYSQL_HOST={host name}
 SENG365_MYSQL_USER={username}
